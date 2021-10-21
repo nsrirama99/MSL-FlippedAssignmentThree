@@ -422,6 +422,7 @@ using namespace cv;
 
 Float64 colors[3][100];
 int pos = 0;
+bool filledArray = false;
 bool found = false;
 -(bool) processFinger{
     cv::Mat frame_gray,image_copy;
@@ -432,8 +433,7 @@ bool found = false;
     char fingerFoundText[50];
     Scalar avgPixelIntensity;
     
-    //The Blue and the Red were in opposite order
-    //I still don't get why this is the case though, I only found after testing image processing, the function clearly states it's BGR in that order, so why is it actually RGB????
+    //The Blue and the Red channels are in the opposite order of how they're defined in the  CV function names, it should be named RGB not BGR for clarity
     cvtColor(_image, image_copy, CV_BGRA2BGR); // get rid of alpha for processing
     avgPixelIntensity = cv::mean( image_copy );
     
@@ -443,28 +443,34 @@ bool found = false;
        or
       all values are below 60 <- this is used to catch the case specified in the assignment
       "or anything over the camera, not just a finger"
+     
+     These threshholds seem to be somewhat dependent on outside lighting, at least in my environment
     */
 
     sprintf(text,"Avg. B: %.0f, G: %.0f, R: %.0f", avgPixelIntensity.val[2],avgPixelIntensity.val[1],avgPixelIntensity.val[0]);
     cv::putText(_image, text, cv::Point(0, 20), FONT_HERSHEY_PLAIN, 0.75, Scalar::all(255), 1, 2);
     
-    if((avgPixelIntensity.val[0] >= 170 || avgPixelIntensity.val[0] <= 60) && avgPixelIntensity.val[1] <= 60 && avgPixelIntensity.val[2] <= 60) {
+    if((avgPixelIntensity.val[0] >= 160 || avgPixelIntensity.val[0] <= 60) && avgPixelIntensity.val[1] <= 60 && avgPixelIntensity.val[2] <= 60) {
         colors[0][pos] = avgPixelIntensity.val[0];
         colors[1][pos] = avgPixelIntensity.val[1];
         colors[2][pos] = avgPixelIntensity.val[2];
         
         pos = (pos + 1) % 100; //cycle through all of array
         if(pos == 0)
-            found = true;
+            filledArray = true;
+        
+        //We return true even when the buffers haven't been filled yet, this is as Larson instructed
+        found = true;
     } else {
-        //"reset" the arrays since there's no longer a finger in view
+        // Originally I was resetting the arrays when there's no longer a finger in view
         //setting current index to 0 is functionally same as clearing the arrays
-        pos = 0;
+        //pos = 0;
+        //I don't think we reset filling the buffer, after talking a little to Larson I think the point is to identify when there've been 100 frames of finger regardless of continuity
         found = false;
     }
     
-    if(found) {
-        sprintf(fingerFoundText, "That's a finger!");
+    if(pos == 0 || filledArray) { //originally only setting if(found), but after talking to Larson I think we wanna print when any 100 frames of a finger were identified, regardless of continuity
+        sprintf(fingerFoundText, "100 frames of finger!");
         cv::putText(_image, fingerFoundText, cv::Point(10, 70), FONT_HERSHEY_PLAIN, 1, Scalar::all(255), 1, 2);
     }
 
