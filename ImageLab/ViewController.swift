@@ -22,6 +22,9 @@ class ViewController: UIViewController   {
     @IBOutlet weak var flashSlider: UISlider!
     @IBOutlet weak var stageLabel: UILabel!
     
+    @IBOutlet weak var toggleFlashButton: UIButton!
+    @IBOutlet weak var toggleCameraButton: UIButton!
+    
     //MARK: ViewController Hierarchy
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,7 +87,12 @@ class ViewController: UIViewController   {
                              andContext: self.videoManager.getCIContext())
         
         //self.bridge.processImage()
-        self.bridge.processFinger()
+        let processBool = self.bridge.processFinger()
+        print(!processBool)
+        
+        self.toggleFlashButton.isEnabled = !processBool
+        self.toggleCameraButton.isEnabled = !processBool
+        
         retImage = self.bridge.getImageComposite() // get back opencv processed part of the image (overlayed on original)
         
         return retImage

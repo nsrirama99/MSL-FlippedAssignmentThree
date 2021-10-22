@@ -472,6 +472,7 @@ bool found = false;
     if(pos == 0 || filledArray) { //originally only setting if(found), but after talking to Larson I think we wanna print when any 100 frames of a finger were identified, regardless of continuity
         sprintf(fingerFoundText, "100 frames of finger!");
         cv::putText(_image, fingerFoundText, cv::Point(10, 70), FONT_HERSHEY_PLAIN, 1, Scalar::all(255), 1, 2);
+        
     }
 
     
